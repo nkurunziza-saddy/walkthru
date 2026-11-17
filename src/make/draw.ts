@@ -15,6 +15,7 @@ import {
 	missingParts,
 	partFile,
 	planParts,
+	sweepParts,
 	type Part,
 } from "../plan.ts";
 import type { Lang, Story } from "../record/types.ts";
@@ -105,6 +106,7 @@ export async function drawFilm(options: {
 	const { config, shape, final } = options;
 	const planned = planFilm(options);
 	const { input, parts, plan, settings, cache, film, missing } = planned;
+	sweepParts(cache, film, plan);
 	if (missing.length) {
 		const renderer = await import("@remotion/renderer");
 		const { bundleFilms } = await import("../render/bundle.ts");

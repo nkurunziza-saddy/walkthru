@@ -164,17 +164,21 @@ export function planParts({
 export const partFile = (cache: string, film: string, part: Part) =>
 	path.join(cache, film, `${part.id}-${part.key}.mp4`);
 
-/** The parts not drawn yet. It also forgets the ones this film no longer has. */
+/** The parts not drawn yet. Reading only: a plan changes nothing. */
 export function missingParts(cache: string, film: string, plan: Part[]) {
+	return plan.filter((part) => !existsSync(partFile(cache, film, part)));
+}
+
+/** Forgets the parts this film no longer has: done when it is drawn, not when it is planned. */
+export function sweepParts(cache: string, film: string, plan: Part[]) {
 	const dir = path.join(cache, film);
 	mkdirSync(dir, { recursive: true });
 	const wanted = new Set(
 		plan.map((part) => path.basename(partFile(cache, film, part))),
 	);
 	for (const name of readdirSync(dir))
-		if (name.endsWith(".mp4") && !wanted.has(name))
+		if (name.endsWith(".mp4") && name !== "joined.mp4" && !wanted.has(name))
 			rmSync(path.join(dir, name), { force: true });
-	return plan.filter((part) => !existsSync(partFile(cache, film, part)));
 }
 
 /** ffmpeg's arguments to join the parts as they are, into `output`. */

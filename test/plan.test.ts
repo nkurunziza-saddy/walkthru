@@ -14,6 +14,7 @@ import {
 	joinArgs,
 	missingParts,
 	partFile,
+	sweepParts,
 	planParts,
 	type PlannedFilm,
 } from "../src/plan.ts";
@@ -117,7 +118,7 @@ describe("planParts", () => {
 });
 
 describe("missingParts", () => {
-	it("lists the parts not drawn yet and forgets the ones the film no longer has", () => {
+	it("lists the parts not drawn yet; only a sweep forgets the ones the film no longer has", () => {
 		const cache = path.join(dir, "cache");
 		const parts = plan(film());
 		mkdirSync(path.join(cache, "f"), { recursive: true });
@@ -126,8 +127,12 @@ describe("missingParts", () => {
 		writeFileSync(path.join(cache, "f", "notes.txt"), "kept");
 		const missing = missingParts(cache, "f", parts);
 		expect(missing.map((p) => p.id)).toEqual(["a", "b", "c", "closing"]);
+		// Planning reads only.
+		expect(existsSync(path.join(cache, "f", "a-oldkey.mp4"))).toBe(true);
+		sweepParts(cache, "f", parts);
 		expect(existsSync(path.join(cache, "f", "a-oldkey.mp4"))).toBe(false);
 		expect(existsSync(path.join(cache, "f", "notes.txt"))).toBe(true);
+		expect(existsSync(partFile(cache, "f", parts[0]!))).toBe(true);
 	});
 });
 
