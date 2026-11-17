@@ -11,8 +11,9 @@ when a screen changes, the script fails until it is fixed.
 It started inside [Rugero](https://rugero.app) as its guide films and is being made
 into a tool of its own. **Status: early.** The parts that know no app are here and
 tested: the timeline, the planner that keeps drawn parts, the sound, and the film's
-drawing (it draws Rugero's films pixel for pixel, given Rugero's brand as data). The
-recorder and the command line come next. See [docs/PLAN.md](docs/PLAN.md).
+drawing (it draws Rugero's films pixel for pixel, given Rugero's brand as data), and
+the recorder, for topics and for stories told in scenes (an app is plugged in through a
+`Host`). The command line and the Studio come next. See [docs/PLAN.md](docs/PLAN.md).
 
 ## Working on it
 
@@ -34,6 +35,9 @@ npx tsc --noEmit  # types
 | `src/film/` | the films' drawing (Remotion): the window, captions, cursor, cards, text effects |
 | `src/film/brand.tsx` | whose film it is: name, mark, colours, the film's own words |
 | `src/render/bundle.ts` | the films bundled for drawing |
+| `src/record/types.ts` | scripts (topics, stories, steps) and the `Host` an app provides |
+| `src/record/run.ts` | records one topic: steps, the real mouse, frames, times of taps and keys |
+| `src/record/story.ts` | records a story scene by scene, or from one scene on |
 
 ## Why it is quick to change
 

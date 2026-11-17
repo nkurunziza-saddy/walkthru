@@ -134,3 +134,76 @@ export type Host<T extends Topic = Topic> = {
 	/** Where recordings go; the topic's own folder is `<out>/rec/<topic>/<lang>-<shape>`. */
 	out: string;
 };
+
+/** A person of the team, who may have scenes of their own in their own browser. */
+export type Person = { name: string; email: string };
+
+/**
+ * A scene of a story: one moment of a business's days, recorded from the app with its
+ * clock at `at`. `State` is what the host gives the scenes to share (its API, what
+ * happened off camera).
+ */
+export type Scene<State = any> = {
+	/** Stable: names the scene's recording. */
+	id: string;
+	/** The moment, in the host's time zone: "YYYY-MM-DD HH:MM". */
+	at: string;
+	/** Which day it is, on the chip over the scene. */
+	day: Words;
+	/** A card before the scene, for a turn in the story: "After a week". */
+	card?: { title: Words; line?: Words };
+	/** How fast the film plays it: above 1 is a speed run (one caption, short holds). */
+	speed?: number;
+	/** The scene's one caption in a speed run. */
+	caption?: Words;
+	/** What else happened that day before the scene, through the app, off camera. */
+	offCamera?: (state: State) => Promise<void>;
+	/** The page the scene starts on; `null` stays where the last left off. Default "/home". */
+	start?: string | null;
+	/** Someone of the team instead of the owner: the scene is in their own browser. */
+	as?: Person;
+	steps: Step[];
+};
+
+/** A story: one business over days, told in scenes. A host adds its own fields. */
+export type Story<State = any> = {
+	slug: string;
+	title: Words;
+	summary: Words;
+	practice: Words;
+	scenes: Scene<State>[];
+};
+
+/**
+ * What a story needs of the app beyond a topic's: starting it at a moment (its clock
+ * moved there), and the state the scenes share.
+ */
+export type StoryHost<S extends Story = Story, State = any> = Omit<
+	Host,
+	"open"
+> & {
+	/**
+	 * The app started with its clock at `at` ("YYYY-MM-DD HH:MM" in the host's time
+	 * zone). `fresh`: a new start (a new database); otherwise everything kept.
+	 */
+	start: (
+		story: S,
+		at: string,
+		fresh: boolean,
+	) => Promise<{ stop: () => Promise<void> }>;
+	/** Cookies a new browser starts with (a language choice, say). */
+	cookies?: (lang: Lang) => Cookie[];
+	/**
+	 * The state the scenes share, made once after the first start: given to `offCamera`
+	 * and to the steps as `ctx.data`. `cookies` reads the owner's browser's cookies.
+	 */
+	state: (
+		story: S,
+		lang: Lang,
+		cookies: () => Promise<string>,
+	) => State & { today: string };
+	/** After the app is started again at the next scene's moment (keeping people signed in, say). */
+	between?: () => Promise<void>;
+	/** When the story is done, filmed or not. */
+	end?: () => Promise<void>;
+};

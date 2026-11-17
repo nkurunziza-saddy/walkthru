@@ -118,7 +118,12 @@ A local app (`walkthru studio`), designed under the product-ui rules (13px base 
    two renders of Rugero itself). Was: the planner and fingerprints, the timeline,
    the presses, the sound, the compose layer and text effects, with tests (the
    planner's seam check, the timeline against the film's length).
-2. **The adapter and the recorder.** Rugero's adapter written in Rugero.
+2. **The adapter and the recorder.** Done in walkthru: `src/record` (topics and stories,
+   `--from`/`--to`), with the app behind a `Host`. Checked with a throwaway Rugero host:
+   first-sale runs six ways and films the same steps, taps and keys as Rugero's own
+   recorder (lengths within 0.1 s); boutique-month's 16 scenes run, and its Sunday was
+   filmed alone in 90 s with the scenes before it replayed. Rugero's real adapter
+   comes with step 6.
 3. **The command line and the store**, local first: `init`, `make`, `record`, `draw`,
    `studio`, `publish`, `doctor`.
 4. **The Studio.**
