@@ -1,0 +1,69 @@
+# Draws a film's chunks on build machines, one machine a chunk, at the commit the
+# film's parts were planned at (tools: `walkthru draw --remote`, src/make/remote.ts).
+# The job's input is a release asset of this repository; each chunk comes back as an
+# artifact, kept a day.
+name: Draw
+run-name: draw ${{ inputs.job }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: The job (its input is the release asset <job>.json and <job>.tar)
+        required: true
+      commit:
+        description: The commit to draw at
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  chunks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ids: ${{ steps.read.outputs.ids }}
+    steps:
+      - name: Read the job's chunks
+        id: read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download walkthru-jobs -R "${{ github.repository }}" -p "${{ inputs.job }}.json" -O job.json
+          echo "ids=$(jq -c '[.chunks[].id]' job.json)" >> "$GITHUB_OUTPUT"
+
+  draw:
+    needs: chunks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: true
+      max-parallel: 20
+      matrix:
+        chunk: ${{ fromJson(needs.chunks.outputs.ids) }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.commit }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm install -g vite-plus@1.1.0
+      - run: vp install --frozen-lockfile
+      - name: Fetch the job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p job/public
+          gh release download walkthru-jobs -R "${{ github.repository }}" -p "${{ inputs.job }}.json" -O job/job.json
+          gh release download walkthru-jobs -R "${{ github.repository }}" -p "${{ inputs.job }}.tar" -O job/job.tar
+          tar -xf job/job.tar -C job/public
+      - name: Draw the chunk
+        run: node src/make/remote-part.ts job "${{ matrix.chunk }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chunk-${{ matrix.chunk }}
+          path: job/out/*.mp4
+          retention-days: 1
+          if-no-files-found: error

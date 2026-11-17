@@ -20,6 +20,7 @@ import {
 } from "../plan.ts";
 import type { Lang, Story } from "../record/types.ts";
 import { filmParts, filmPresses } from "../timeline.ts";
+import { drawParts } from "./parts.ts";
 import { mixSound } from "./sound.ts";
 
 export const FPS = 30;
@@ -102,42 +103,27 @@ export async function drawFilm(options: {
 	shape: Shape;
 	final: boolean;
 	onPart?: (part: Part, seconds: number) => void;
+	/** Draw the missing parts on build machines (src/make/remote.ts). */
+	remote?: boolean;
+	say?: (line: string) => void;
 }) {
-	const { config, shape, final } = options;
+	const { config, final } = options;
 	const planned = planFilm(options);
 	const { input, parts, plan, settings, cache, film, missing } = planned;
 	sweepParts(cache, film, plan);
-	if (missing.length) {
-		const renderer = await import("@remotion/renderer");
-		const { bundleFilms } = await import("../render/bundle.ts");
-		const serveUrl = await bundleFilms(config.public ?? config.host.out);
-		const composition = await renderer.selectComposition({
-			serveUrl,
-			id: shape === "landscape" ? "StoryLandscape" : "StoryUpright",
-			inputProps: input,
-			logLevel: "error",
-		});
-		if (composition.durationInFrames !== parts.total)
-			throw new Error(
-				`The film is ${composition.durationInFrames} frames and its plan ${parts.total}: the timeline and the film disagree.`,
-			);
-		for (const part of missing) {
-			const started = Date.now();
-			await renderer.renderMedia({
-				serveUrl,
-				composition,
-				inputProps: input,
-				codec: "h264",
-				muted: true,
-				outputLocation: partFile(cache, film, part),
-				logLevel: "error",
-				imageFormat: "jpeg",
-				frameRange: [part.from, part.to - 1],
-				...settings,
-			});
-			options.onPart?.(part, Math.round((Date.now() - started) / 1000));
-		}
-	}
+	const drawing = {
+		publicDir: config.public ?? config.host.out,
+		input,
+		total: parts.total,
+		parts: missing,
+		settings,
+		fileOf: (part: Part) => partFile(cache, film, part),
+	};
+	// On build machines, or here.
+	if (options.remote) {
+		const { drawRemote } = await import("./remote.ts");
+		await drawRemote({ ...drawing, say: options.say });
+	} else await drawParts({ ...drawing, onPart: options.onPart });
 	const joined = path.join(cache, film, "joined.mp4");
 	const done = spawnSync("ffmpeg", joinArgs(cache, film, plan, joined), {
 		stdio: "inherit",

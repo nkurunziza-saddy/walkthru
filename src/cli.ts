@@ -10,7 +10,8 @@
  *   walkthru studio [--port 4317]                       a local page to update the films and tune their look
  *   walkthru doctor                                     what this machine has and lacks
  *
- * Options: --shape landscape|upright (landscape), --only (film only the changed scenes,
+ * Options: --remote (draw on build machines: GitHub Actions, at this checkout's pushed
+ * commit), --shape landscape|upright (landscape), --only (film only the changed scenes,
  * not every scene after the first change), --yes (no question before a long job),
  * --anyway (start though the machine is busy).
  */
@@ -164,6 +165,8 @@ async function draw(config: Config, story: Story, lang: string) {
 		shape,
 		final,
 		onPart: (part, s) => say(`  drew ${part.id} (${s} s)`),
+		remote: has("remote"),
+		say,
 	});
 	say(
 		`${path.relative(process.cwd(), result.output)}: ${result.kept} parts kept, ${result.drawn} drawn, ${minutes((Date.now() - started) / 1000)}`,
@@ -245,7 +248,7 @@ async function main() {
 		return;
 	}
 	if (command === "draw") {
-		if (!(await quietEnough())) process.exit(1);
+		if (!has("remote") && !(await quietEnough())) process.exit(1);
 		if (has("redo")) {
 			const { rmSync } = await import("node:fs");
 			for (const lang of langs)
