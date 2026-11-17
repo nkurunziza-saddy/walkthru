@@ -24,8 +24,15 @@ that folder:
 walkthru plan boutique-month --lang rw    # what is out of date, and about how long
 walkthru make boutique-month --lang rw    # film what changed, draw what changed, lay the sound
 walkthru studio                           # the same, on a page, and the look
+walkthru draw boutique-month --lang rw --remote   # draw on build machines (GitHub Actions)
 walkthru doctor                           # what this machine has and lacks
 ```
+
+`--remote` cuts the parts to draw into chunks of at most 10 s, draws them at once on
+GitHub's build machines at this checkout's pushed commit, and brings them home: this
+machine stays free. On a public repository it costs nothing; a private one spends its
+monthly free minutes (about 5 minutes a chunk). `node tools/check-remote.ts` draws a
+sample film both ways and compares them.
 
 A scene is filmed again when its script changes (its steps' code, its moment, who is in
 it), not when its caption does: a caption is drawn. A film is drawn in parts and only

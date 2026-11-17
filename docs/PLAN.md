@@ -84,7 +84,9 @@ Next, in this order:
    *Guess, not measured:* with ~20 jobs at once a film draws in a few minutes and the
    author's machine stays free. Remotion Lambda was read and rejected (needs a paid
    AWS account; about $0.10 for a 10-minute film).
-2. **Film several scenes or stories at once.** Filming waits more than it computes.
+2. **Film several scenes or stories at once.** Still to do: it needs the host to start
+   several copies of the app, each on its own port, database, state folder and log
+   (Rugero's `startServer` has one of each). Filming waits more than it computes.
    Each recording needs its own port, database, state folder and log. Untried.
 3. **Skip the caption-reading waits** (a hold becomes a recorded duration, with the
    clock moved on, not slept through): about 25–30% off filming.
@@ -132,7 +134,13 @@ A local app (`walkthru studio`), designed under the product-ui rules (13px base 
    Update, its scenes with Film again; Draft or Final; one job at a time, the row's
    text says what is happening) and the look page (the look lab, its paths from the
    config).
-5. **Drawing on build machines.**
+5. **Drawing on build machines.** Done: `draw --remote` (src/make/remote.ts and the
+   Draw workflow). Parts are cut into chunks of at most 300 frames, since a free
+   machine has two cores; a machine draws with the tabs it has (they change speed, not
+   frames). Checked with a sample film of test patterns: the same 855 frames, 50 dB
+   PSNR between the two (the build machines' browser smooths edges a little
+   differently: the same to the eye, not to the pixel), a two-chunk part joined
+   without a seam, the uploaded input removed after.
 6. **Rugero consumes it:** `apps/video`'s guide becomes a config and its scripts.
 7. **Make the repo public** after a check that nothing private is in it (no Rugero
    data, no recordings of real people, no secrets, no personal pictures).
