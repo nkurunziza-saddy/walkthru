@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Look · walkthru</title>
+		<style>
+			:root {
+				--bg: #f4f4f3;
+				--card: #fff;
+				--fg: #1c1c1a;
+				--fg2: #6b6b66;
+				--line: #e2e2de;
+				--accent: #1c1c1a;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #151514;
+					--card: #1f1f1d;
+					--fg: #ececea;
+					--fg2: #a3a39e;
+					--line: #33332f;
+					--accent: #ececea;
+				}
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--fg);
+				font:
+					13px/1.4 system-ui,
+					-apple-system,
+					"Segoe UI",
+					sans-serif;
+			}
+			.app {
+				display: grid;
+				grid-template-columns: 340px 1fr;
+				height: 100vh;
+			}
+			aside {
+				overflow-y: auto;
+				border-right: 1px solid var(--line);
+				background: var(--card);
+				padding: 14px 16px 80px;
+			}
+			h1 {
+				font-size: 15px;
+				margin: 0 0 2px;
+			}
+			h2 {
+				font-size: 12px;
+				font-weight: 600;
+				color: var(--fg2);
+				text-transform: none;
+				margin: 18px 0 8px;
+			}
+			.sub {
+				color: var(--fg2);
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 6px;
+			}
+			.thumb {
+				aspect-ratio: 16/9;
+				border-radius: 6px;
+				background-size: cover;
+				background-position: center;
+				border: 2px solid transparent;
+				cursor: pointer;
+			}
+			.thumb.on {
+				border-color: var(--accent);
+			}
+			label.row {
+				display: grid;
+				grid-template-columns: 92px 1fr 42px;
+				align-items: center;
+				gap: 8px;
+				margin: 6px 0;
+			}
+			label.row span:last-child {
+				text-align: right;
+				color: var(--fg2);
+				font-variant-numeric: tabular-nums;
+			}
+			input[type="range"] {
+				width: 100%;
+			}
+			select,
+			input[type="text"] {
+				width: 100%;
+				padding: 6px 8px;
+				border-radius: 8px;
+				border: 1px solid var(--line);
+				background: var(--bg);
+				color: var(--fg);
+				font: inherit;
+			}
+			.seg {
+				display: inline-flex;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				overflow: hidden;
+			}
+			.seg button {
+				border: 0;
+				background: transparent;
+				color: var(--fg);
+				padding: 6px 12px;
+				font: inherit;
+				cursor: pointer;
+			}
+			.seg button.on {
+				background: var(--accent);
+				color: var(--bg);
+			}
+			.check {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin: 6px 0;
+			}
+			main {
+				display: grid;
+				place-items: center;
+				padding: 20px;
+				overflow: auto;
+			}
+			canvas {
+				max-width: 100%;
+				max-height: calc(100vh - 40px);
+				border-radius: 8px;
+				box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+			}
+			.bar {
+				position: fixed;
+				left: 0;
+				bottom: 0;
+				width: 340px;
+				padding: 10px 16px;
+				background: var(--card);
+				border-top: 1px solid var(--line);
+				display: flex;
+				gap: 8px;
+				align-items: center;
+			}
+			.bar button {
+				padding: 8px 14px;
+				border-radius: 8px;
+				border: 1px solid var(--line);
+				background: var(--bg);
+				color: var(--fg);
+				font: inherit;
+				cursor: pointer;
+			}
+			.bar button.primary {
+				background: var(--accent);
+				color: var(--bg);
+				border-color: var(--accent);
+			}
+			#status {
+				color: var(--fg2);
+				font-size: 12px;
+			}
+			.back {
+				display: inline-block;
+				margin-bottom: 10px;
+				color: var(--fg2);
+				text-decoration: none;
+			}
+			.back:hover {
+				color: var(--fg);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="app">
+			<aside>
+				<a class="back" href="/">Films</a>
+				<h1>Look</h1>
+				<div class="sub">
+					Tune the films' look. Save writes it for the films.
+				</div>
+
+				<h2>Shape</h2>
+				<div class="seg" id="shape">
+					<button data-v="landscape" class="on">Landscape</button
+					><button data-v="upright">Upright</button>
+				</div>
+
+				<h2>Background</h2>
+				<div class="grid" id="bgs"></div>
+
+				<h2>Background softness and colour</h2>
+				<label class="row"
+					><span>Blur</span
+					><input
+						type="range"
+						id="blur"
+						min="0"
+						max="40"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Brightness</span
+					><input
+						type="range"
+						id="brightness"
+						min="0.5"
+						max="1.5"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Saturation</span
+					><input
+						type="range"
+						id="saturation"
+						min="0"
+						max="2"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Contrast</span
+					><input
+						type="range"
+						id="contrast"
+						min="0.5"
+						max="1.5"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Wash</span
+					><input
+						type="range"
+						id="wash"
+						min="0"
+						max="0.8"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Wash colour</span
+					><input type="color" id="washColor" /><span></span
+				></label>
+
+				<h2>Dither (background)</h2>
+				<div class="check">
+					<input type="checkbox" id="dither" /><span>On</span>
+				</div>
+				<label class="row"
+					><span>Pattern</span
+					><select id="pattern">
+						<option value="4">Bayer 4×4</option>
+						<option value="8">Bayer 8×8</option></select
+					><span></span
+				></label>
+				<label class="row"
+					><span>Pixel size</span
+					><input
+						type="range"
+						id="pixel"
+						min="1"
+						max="10"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Colours</span
+					><input
+						type="range"
+						id="levels"
+						min="2"
+						max="16"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Strength</span
+					><input
+						type="range"
+						id="strength"
+						min="0"
+						max="1.5"
+						step="0.01" /><span></span
+				></label>
+
+				<h2>Grain (whole frame)</h2>
+				<label class="row"
+					><span>On background</span
+					><input
+						type="range"
+						id="grain"
+						min="0"
+						max="0.2"
+						step="0.005" /><span></span
+				></label>
+				<label class="row"
+					><span>On the app</span
+					><input
+						type="range"
+						id="grainApp"
+						min="0"
+						max="0.1"
+						step="0.005" /><span></span
+				></label>
+
+				<h2>App window</h2>
+				<label class="row"
+					><span>Screen</span
+					><select id="shot"></select
+					><span></span
+				></label>
+				<label class="row"
+					><span>Width %</span
+					><input
+						type="range"
+						id="frameWidth"
+						min="40"
+						max="96"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Height limit %</span
+					><input
+						type="range"
+						id="frameHeight"
+						min="40"
+						max="96"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Inner padding</span
+					><input
+						type="range"
+						id="innerPad"
+						min="0"
+						max="80"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Frame</span
+					><select id="frameStyle">
+						<option value="glass">Frosted glass</option>
+						<option value="solid">Solid</option>
+						<option value="none">None (app only)</option></select
+					><span></span
+				></label>
+				<label class="row"
+					><span>Frame tint</span
+					><input
+						type="range"
+						id="frameAlpha"
+						min="0"
+						max="1"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Frame colour</span
+					><input type="color" id="frameColor" /><span></span
+				></label>
+				<label class="row"
+					><span>App corners</span
+					><input
+						type="range"
+						id="appRadius"
+						min="0"
+						max="32"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Dither on window</span
+					><input
+						type="range"
+						id="windowDither"
+						min="0"
+						max="0.4"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Corners</span
+					><input
+						type="range"
+						id="radius"
+						min="0"
+						max="48"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Shadow</span
+					><input
+						type="range"
+						id="shadow"
+						min="0"
+						max="120"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Shadow depth</span
+					><input
+						type="range"
+						id="shadowAlpha"
+						min="0"
+						max="0.6"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Edge line</span
+					><input
+						type="range"
+						id="edge"
+						min="0"
+						max="0.4"
+						step="0.01" /><span></span
+				></label>
+
+				<h2>Caption</h2>
+				<div class="check">
+					<input type="checkbox" id="caption" /><span>Show</span>
+				</div>
+				<label class="row"
+					><span>Style</span
+					><select id="captionStyle">
+						<option value="pill">Dark pill</option>
+						<option value="light">Light pill</option>
+						<option value="text">Text only</option></select
+					><span></span
+				></label>
+				<label class="row"
+					><span>Where</span
+					><select id="captionAt">
+						<option value="below">Below the window</option>
+						<option value="over">Over the bottom of the window</option>
+						<option value="top">Above the window</option></select
+					><span></span
+				></label>
+				<label class="row"
+					><span>Size</span
+					><input
+						type="range"
+						id="captionSize"
+						min="16"
+						max="64"
+						step="1" /><span></span
+				></label>
+				<label class="row"
+					><span>Card</span
+					><input
+						type="range"
+						id="captionCard"
+						min="0"
+						max="1"
+						step="0.01" /><span></span
+				></label>
+				<label class="row"
+					><span>Text</span><input type="text" id="captionText" /><span></span
+				></label>
+			</aside>
+			<main><canvas id="out"></canvas></main>
+		</div>
+		<div class="bar">
+			<button class="primary" id="save">Save look</button
+			><button id="reset">Reset</button><span id="status"></span>
+		</div>
+
+		<script>
+			const DEFAULT = {
+				shape: "landscape",
+				background: "",
+				blur: 6,
+				brightness: 1,
+				saturation: 0.9,
+				contrast: 1,
+				wash: 0.12,
+				washColor: "#ffffff",
+				dither: true,
+				pattern: 8,
+				pixel: 3,
+				levels: 6,
+				strength: 0.9,
+				grain: 0.04,
+				grainApp: 0,
+				shot: "",
+				frameWidth: 86,
+				frameHeight: 92,
+				innerPad: 6,
+				frameStyle: "glass",
+				frameAlpha: 0.45,
+				frameColor: "#ffffff",
+				appRadius: 10,
+				windowDither: 0,
+				radius: 16,
+				shadow: 70,
+				shadowAlpha: 0.25,
+				edge: 0,
+				caption: true,
+				captionStyle: "pill",
+				captionAt: "below",
+				captionSize: 26,
+				captionCard: 0.78,
+				captionText:
+					"Koresha + kuri buri kimwe cyiyongereye. Yose hamwe irahinduka.",
+			};
+			let look = { ...DEFAULT };
+			let list = { backgrounds: [], wide: [], phone: [] };
+			const images = new Map();
+			const $ = (id) => document.getElementById(id);
+			const canvas = $("out"),
+				ctx = canvas.getContext("2d");
+
+			function load(src) {
+				if (images.has(src)) return images.get(src);
+				const p = new Promise((ok, no) => {
+					const i = new Image();
+					i.onload = () => ok(i);
+					i.onerror = no;
+					i.src = src;
+				});
+				images.set(src, p);
+				return p;
+			}
+			const bayer = (n) => {
+				let m = [[0]];
+				while (m.length < n) {
+					const s = m.length,
+						next = Array.from({ length: s * 2 }, () => Array(s * 2));
+					for (let y = 0; y < s; y++)
+						for (let x = 0; x < s; x++) {
+							const v = m[y][x] * 4;
+							next[y][x] = v;
+							next[y][x + s] = v + 2;
+							next[y + s][x] = v + 3;
+							next[y + s][x + s] = v + 1;
+						}
+					m = next;
+				}
+				const t = n * n;
+				return m.map((r) => r.map((v) => (v + 0.5) / t - 0.5));
+			};
+			function cover(img, w, h) {
+				const s = Math.max(w / img.width, h / img.height);
+				return [
+					(w - img.width * s) / 2,
+					(h - img.height * s) / 2,
+					img.width * s,
+					img.height * s,
+				];
+			}
+			function roundRect(c, x, y, w, h, r) {
+				c.beginPath();
+				c.roundRect(x, y, w, h, r);
+			}
+			function hex(c) {
+				const n = parseInt(c.slice(1), 16);
+				return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+			}
+			function grainOn(c, x, y, w, h, amount) {
+				if (amount <= 0) return;
+				const d = c.getImageData(x, y, w, h),
+					a = d.data,
+					k = amount * 255;
+				for (let i = 0; i < a.length; i += 4) {
+					const n = (Math.random() - 0.5) * k;
+					a[i] += n;
+					a[i + 1] += n;
+					a[i + 2] += n;
+				}
+				c.putImageData(d, x, y);
+			}
+			function wrap(c, text, max) {
+				const words = text.split(/\s+/),
+					lines = [];
+				let line = "";
+				for (const w of words) {
+					const t = line ? line + " " + w : w;
+					if (c.measureText(t).width > max && line) {
+						lines.push(line);
+						line = w;
+					} else line = t;
+				}
+				if (line) lines.push(line);
+				return lines;
+			}
+
+			async function draw() {
+				const W = look.shape === "landscape" ? 1920 : 1080,
+					H = look.shape === "landscape" ? 1080 : 1920;
+				canvas.width = W;
+				canvas.height = H;
+				// Background, softened.
+				if (look.background) {
+					const bg = await load("/bg/" + encodeURIComponent(look.background));
+					const off = new OffscreenCanvas(W, H),
+						o = off.getContext("2d");
+					o.filter = `blur(${look.blur}px) brightness(${look.brightness}) saturate(${look.saturation}) contrast(${look.contrast})`;
+					const [x, y, w, h] = cover(bg, W + look.blur * 4, H + look.blur * 4);
+					o.drawImage(bg, x - look.blur * 2, y - look.blur * 2, w, h);
+					o.filter = "none";
+					if (look.wash > 0) {
+						o.globalAlpha = look.wash;
+						o.fillStyle = look.washColor;
+						o.fillRect(0, 0, W, H);
+						o.globalAlpha = 1;
+					}
+					if (look.dither) {
+						const p = look.pixel,
+							sw = Math.ceil(W / p),
+							sh = Math.ceil(H / p);
+						const small = new OffscreenCanvas(sw, sh),
+							s = small.getContext("2d");
+						s.imageSmoothingEnabled = true;
+						s.drawImage(off, 0, 0, sw, sh);
+						const d = s.getImageData(0, 0, sw, sh),
+							a = d.data,
+							m = bayer(look.pattern),
+							q = look.levels - 1;
+						for (let yy = 0; yy < sh; yy++)
+							for (let xx = 0; xx < sw; xx++) {
+								const t =
+										m[yy % look.pattern][xx % look.pattern] * look.strength,
+									i = (yy * sw + xx) * 4;
+								for (let ch = 0; ch < 3; ch++)
+									a[i + ch] =
+										Math.round(
+											Math.min(q, Math.max(0, (a[i + ch] / 255) * q + t)),
+										) *
+										(255 / q);
+							}
+						s.putImageData(d, 0, 0);
+						o.imageSmoothingEnabled = false;
+						o.clearRect(0, 0, W, H);
+						o.drawImage(small, 0, 0, W, H);
+					}
+					ctx.drawImage(off, 0, 0);
+				} else {
+					ctx.fillStyle = "#e9e7e2";
+					ctx.fillRect(0, 0, W, H);
+				}
+				grainOn(ctx, 0, 0, W, H, look.grain);
+
+				// The window: a frame (glass or solid) with the app inside it, padded, centred.
+				const shotPath =
+					look.shot ||
+					(look.shape === "landscape" ? list.wide[0] : list.phone[0]);
+				if (!shotPath) return;
+				const shot = await load("/shot/" + shotPath);
+				const font = (size, weight = 500) =>
+					`${weight} ${size}px "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif`;
+				ctx.font = font(look.captionSize);
+				const capMax = look.shape === "landscape" ? W * 0.56 : W * 0.86;
+				const lines = look.caption
+					? wrap(ctx, look.captionText, capMax - look.captionSize * 2)
+					: [];
+				const lineH = look.captionSize * 1.35;
+				const capH = lines.length
+					? lines.length * lineH + look.captionSize * 1.1
+					: 0;
+				const gap = look.captionSize * 1.2;
+				const bar = 0;
+				const pad = look.frameStyle === "none" ? 0 : look.innerPad;
+				// Room for the whole group (window and caption), then fit the app inside it.
+				const maxW = (look.frameWidth / 100) * W;
+				const maxH =
+					(look.frameHeight / 100) * H -
+					(lines.length && look.captionAt !== "over" ? capH + gap : 0);
+				const aspect = shot.width / shot.height;
+				let appW = maxW - pad * 2,
+					appH = appW / aspect;
+				if (appH + pad * 2 + bar > maxH) {
+					appH = maxH - pad * 2 - bar;
+					appW = appH * aspect;
+				}
+				const fw = appW + pad * 2,
+					fh = appH + pad * 2 + bar;
+				const groupH =
+					fh + (lines.length && look.captionAt !== "over" ? capH + gap : 0);
+				const top =
+					(H - groupH) / 2 +
+					(lines.length && look.captionAt === "top" ? capH + gap : 0);
+				const fx = (W - fw) / 2,
+					fy = top;
+				// Shadow, then the frame.
+				ctx.save();
+				ctx.shadowColor = `rgba(0,0,0,${look.shadowAlpha})`;
+				ctx.shadowBlur = look.shadow;
+				ctx.shadowOffsetY = look.shadow * 0.3;
+				roundRect(ctx, fx, fy, fw, fh, look.radius);
+				ctx.fillStyle =
+					look.frameStyle === "none" ? "#fff" : "rgba(255,255,255,0.01)";
+				ctx.fill();
+				ctx.restore();
+				if (look.frameStyle !== "none") {
+					ctx.save();
+					roundRect(ctx, fx, fy, fw, fh, look.radius);
+					ctx.clip();
+					if (look.frameStyle === "glass") {
+						ctx.filter = "blur(24px) saturate(1.2)";
+						ctx.drawImage(
+							canvas,
+							fx - 40,
+							fy - 40,
+							fw + 80,
+							fh + 80,
+							fx - 40,
+							fy - 40,
+							fw + 80,
+							fh + 80,
+						);
+						ctx.filter = "none";
+					}
+					const [r, g, b] = hex(look.frameColor);
+					ctx.fillStyle = `rgba(${r},${g},${b},${look.frameStyle === "solid" ? 1 : look.frameAlpha})`;
+					ctx.fillRect(fx, fy, fw, fh);
+					ctx.restore();
+					if (look.edge > 0) {
+						roundRect(ctx, fx + 0.5, fy + 0.5, fw - 1, fh - 1, look.radius);
+						ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, look.edge * 3)})`;
+						ctx.lineWidth = 1.5;
+						ctx.stroke();
+					}
+				}
+				// The app, padded inside the frame.
+				const ax = fx + pad,
+					ay = fy + pad + bar;
+				ctx.save();
+				roundRect(
+					ctx,
+					ax,
+					ay,
+					appW,
+					appH,
+					look.frameStyle === "none" ? look.radius : look.appRadius,
+				);
+				ctx.clip();
+				ctx.imageSmoothingQuality = "high";
+				ctx.drawImage(shot, ax, ay, appW, appH);
+				// A faint dither texture over the window, so it belongs with the ground; the app is not recoloured.
+				if (look.windowDither > 0) {
+					const n = look.pattern,
+						m = bayer(n),
+						cell = Math.max(1, look.pixel);
+					const tile = new OffscreenCanvas(n * cell, n * cell),
+						t = tile.getContext("2d");
+					for (let y = 0; y < n; y++)
+						for (let x = 0; x < n; x++) {
+							const v = m[y][x];
+							t.fillStyle =
+								v > 0 ? `rgba(255,255,255,${v * 2})` : `rgba(0,0,0,${-v * 2})`;
+							t.fillRect(x * cell, y * cell, cell, cell);
+						}
+					ctx.globalAlpha = look.windowDither;
+					ctx.fillStyle = ctx.createPattern(tile, "repeat");
+					ctx.fillRect(fx, fy, fw, fh);
+					ctx.globalAlpha = 1;
+				}
+				ctx.restore();
+				if (look.grainApp > 0) {
+					ctx.save();
+					roundRect(ctx, fx, fy, fw, fh, look.radius);
+					ctx.clip();
+					grainOn(
+						ctx,
+						Math.round(fx),
+						Math.round(fy),
+						Math.round(fw),
+						Math.round(fh),
+						look.grainApp,
+					);
+					ctx.restore();
+				}
+				if (look.frameStyle === "none" && look.edge > 0) {
+					roundRect(ctx, ax + 0.5, ay + 0.5, appW - 1, appH - 1, look.radius);
+					ctx.strokeStyle = `rgba(0,0,0,${look.edge})`;
+					ctx.lineWidth = 1.5;
+					ctx.stroke();
+				}
+
+				// The caption: a slim pill, or text alone.
+				if (lines.length) {
+					ctx.font = font(look.captionSize);
+					const textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+					const px = look.captionSize * 0.95,
+						cw = textW + px * 2;
+					const cx = (W - cw) / 2;
+					const cy =
+						look.captionAt === "below"
+							? fy + fh + gap
+							: look.captionAt === "top"
+								? fy - gap - capH
+								: fy + fh - pad - capH - look.captionSize * 0.6;
+					if (look.captionStyle !== "text") {
+						ctx.save();
+						ctx.shadowColor = "rgba(0,0,0,.18)";
+						ctx.shadowBlur = 30;
+						ctx.shadowOffsetY = 8;
+						roundRect(
+							ctx,
+							cx,
+							cy,
+							cw,
+							capH,
+							Math.min(capH / 2, look.captionSize * 1.1),
+						);
+						ctx.fillStyle =
+							look.captionStyle === "pill"
+								? `rgba(20,20,18,${look.captionCard})`
+								: `rgba(255,255,255,${look.captionCard})`;
+						ctx.fill();
+						ctx.restore();
+					}
+					ctx.fillStyle = look.captionStyle === "light" ? "#1c1c1a" : "#fff";
+					if (look.captionStyle === "text") {
+						ctx.shadowColor = "rgba(0,0,0,.45)";
+						ctx.shadowBlur = 12;
+					}
+					ctx.textAlign = "center";
+					ctx.textBaseline = "middle";
+					lines.forEach((l, i) =>
+						ctx.fillText(
+							l,
+							W / 2,
+							cy + look.captionSize * 0.55 + lineH * (i + 0.5),
+						),
+					);
+					ctx.shadowBlur = 0;
+				}
+			}
+
+			let pending = false;
+			const redraw = () => {
+				if (pending) return;
+				pending = true;
+				requestAnimationFrame(async () => {
+					pending = false;
+					await draw();
+				});
+			};
+
+			function bind() {
+				for (const el of document.querySelectorAll(
+					"aside input, aside select",
+				)) {
+					const k = el.id;
+					if (!(k in look)) continue;
+					const out = el.closest("label")?.querySelector("span:last-child");
+					const show = () => {
+						if (out && el.type === "range") out.textContent = el.value;
+					};
+					if (el.type === "checkbox") el.checked = look[k];
+					else el.value = look[k];
+					show();
+					el.oninput = () => {
+						look[k] =
+							el.type === "checkbox"
+								? el.checked
+								: el.type === "range" || k === "pattern"
+									? Number(el.value)
+									: el.value;
+						show();
+						redraw();
+					};
+				}
+				document.querySelectorAll("#shape button").forEach((b) => {
+					b.classList.toggle("on", b.dataset.v === look.shape);
+					b.onclick = () => {
+						look.shape = b.dataset.v;
+						look.shot = "";
+						fillShots();
+						bind();
+						redraw();
+					};
+				});
+				document
+					.querySelectorAll(".thumb")
+					.forEach((t) =>
+						t.classList.toggle("on", t.dataset.v === look.background),
+					);
+			}
+			function fillShots() {
+				const shots = look.shape === "landscape" ? list.wide : list.phone;
+				$("shot").innerHTML = shots
+					.map(
+						(s) => `<option value="${s}">${s.replace(/\.webp$/, "")}</option>`,
+					)
+					.join("");
+				if (!shots.includes(look.shot))
+					look.shot = shots.find((s) => s.includes("/rw/")) ?? shots[0] ?? "";
+			}
+
+			(async () => {
+				list = await (await fetch("/list")).json();
+				if (list.look) look = { ...DEFAULT, ...list.look };
+				if (!look.background)
+					look.background =
+						list.backgrounds.find((b) => b.startsWith("serenox-Image 36")) ??
+						list.backgrounds[0];
+				$("bgs").innerHTML = list.backgrounds
+					.map(
+						(b) =>
+							`<div class="thumb" title="${b}" data-v="${b}" style="background-image:url('/bg/${encodeURIComponent(b)}')"></div>`,
+					)
+					.join("");
+				document.querySelectorAll(".thumb").forEach(
+					(t) =>
+						(t.onclick = () => {
+							look.background = t.dataset.v;
+							bind();
+							redraw();
+						}),
+				);
+				fillShots();
+				bind();
+				redraw();
+				$("save").onclick = async () => {
+					const r = await fetch("/save", {
+						method: "POST",
+						body: JSON.stringify(look),
+					});
+					$("status").textContent = r.ok
+						? "Saved. The films will use this look."
+						: "Not saved.";
+				};
+				$("reset").onclick = () => {
+					look = { ...DEFAULT, background: look.background };
+					fillShots();
+					bind();
+					redraw();
+					$("status").textContent = "";
+				};
+			})();
+		</script>
+	</body>
+</html>

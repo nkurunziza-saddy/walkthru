@@ -13,6 +13,7 @@
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { keepSceneSha } from "../make/stale.ts";
 import { momentIn } from "./moment.ts";
 import { newDeviceContext, runTopic } from "./run.ts";
 import type {
@@ -138,6 +139,8 @@ export async function recordStory<S extends Story>(run: StoryRun<S>) {
 				// A speed run holds only a moment at the end of each step: the film plays it fast under one caption.
 				dwell: (scene.speed ?? 1) > 1 ? () => 700 : undefined,
 			});
+			// What it was filmed from, so a later change to its script is seen.
+			if (!dry && !replay) keepSceneSha(join(out, scene.id), scene);
 			run.onScene?.(
 				scene.id,
 				!dry && !replay,

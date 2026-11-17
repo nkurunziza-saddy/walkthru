@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Films · walkthru</title>
+		<style>
+			/* The look page's tokens: one neutral ramp, one accent for the one primary action. */
+			:root {
+				--bg: #f4f4f3;
+				--card: #fff;
+				--fg: #1c1c1a;
+				--fg2: #6b6b66;
+				--fg3: #8d8d87;
+				--line: #e2e2de;
+				--well: #efefed;
+				--accent: oklch(0.55 0.14 255);
+				--on-accent: #fff;
+				--bad: #b42318;
+				--ease: cubic-bezier(0.23, 1, 0.32, 1);
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #151514;
+					--card: #1f1f1d;
+					--fg: #ececea;
+					--fg2: #a3a39e;
+					--fg3: #7d7d78;
+					--line: #33332f;
+					--well: #272725;
+					--accent: oklch(0.62 0.14 255);
+					--bad: #f97066;
+				}
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--fg);
+				font:
+					13px/1.45 system-ui,
+					-apple-system,
+					"Segoe UI",
+					sans-serif;
+			}
+			header {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				height: 48px;
+				padding: 0 24px;
+				border-bottom: 1px solid var(--line);
+				background: var(--card);
+			}
+			header strong {
+				font-size: 13px;
+				font-weight: 600;
+			}
+			nav {
+				display: flex;
+				gap: 4px;
+			}
+			nav a {
+				padding: 4px 8px;
+				border-radius: 6px;
+				color: var(--fg2);
+				text-decoration: none;
+			}
+			nav a[aria-current] {
+				color: var(--fg);
+				background: var(--well);
+			}
+			nav a:hover {
+				color: var(--fg);
+			}
+			main {
+				max-width: 880px;
+				margin: 0 auto;
+				padding: 32px 24px 96px;
+			}
+			.top {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				margin-bottom: 24px;
+			}
+			h1 {
+				font-size: 16px;
+				font-weight: 600;
+				margin: 0;
+				flex: 1;
+			}
+			button {
+				font: inherit;
+				height: 28px;
+				padding: 0 10px;
+				border-radius: 6px;
+				border: 0;
+				cursor: pointer;
+				white-space: nowrap;
+			}
+			button:active:not(:disabled) {
+				transform: scale(0.98);
+				transition: transform 150ms var(--ease);
+			}
+			button:focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 0;
+			}
+			button:disabled {
+				opacity: 0.45;
+				cursor: default;
+			}
+			.primary {
+				background: var(--accent);
+				color: var(--on-accent);
+				font-weight: 500;
+			}
+			.secondary {
+				background: var(--well);
+				color: var(--fg);
+			}
+			.secondary:hover:not(:disabled) {
+				background: var(--line);
+			}
+			.quiet {
+				background: none;
+				color: var(--fg2);
+				padding: 0 6px;
+			}
+			.quiet:hover:not(:disabled) {
+				color: var(--fg);
+			}
+			.seg {
+				display: inline-flex;
+				padding: 2px;
+				border-radius: 8px;
+				background: var(--well);
+			}
+			.seg button {
+				height: 24px;
+				background: none;
+				color: var(--fg2);
+			}
+			.seg button[aria-pressed="true"] {
+				background: var(--card);
+				color: var(--fg);
+				box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+			}
+			.story {
+				margin-bottom: 32px;
+			}
+			.story h2 {
+				font-size: 13px;
+				font-weight: 600;
+				margin: 0 0 8px;
+			}
+			.story h2 span {
+				color: var(--fg3);
+				font-weight: 400;
+				margin-left: 6px;
+			}
+			.rows {
+				background: var(--card);
+				border-radius: 10px;
+				overflow: hidden;
+			}
+			.row {
+				display: grid;
+				grid-template-columns: 40px 1fr auto;
+				align-items: center;
+				gap: 12px;
+				min-height: 44px;
+				padding: 6px 8px 6px 16px;
+			}
+			.row + .row,
+			.row + .scenes,
+			.scenes + .row {
+				border-top: 1px solid var(--line);
+			}
+			.lang {
+				color: var(--fg2);
+				font-variant-numeric: tabular-nums;
+			}
+			.line {
+				color: var(--fg2);
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.line.done {
+				color: var(--fg3);
+			}
+			.line.busy {
+				color: var(--fg);
+			}
+			.line .err {
+				color: var(--bad);
+			}
+			.acts {
+				display: flex;
+				gap: 4px;
+			}
+			.scenes {
+				padding: 4px 8px 10px 68px;
+			}
+			.scene {
+				display: grid;
+				grid-template-columns: 1fr 80px auto;
+				align-items: center;
+				gap: 12px;
+				min-height: 30px;
+			}
+			.scene .state {
+				color: var(--fg3);
+			}
+			.scene .state.changed,
+			.scene .state.new {
+				color: var(--fg);
+			}
+			.output {
+				position: fixed;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				max-height: 180px;
+				overflow-y: auto;
+				background: var(--card);
+				border-top: 1px solid var(--line);
+				padding: 10px 24px;
+				font:
+					12px/1.5 ui-monospace,
+					"SF Mono",
+					monospace;
+				color: var(--fg2);
+				white-space: pre-wrap;
+			}
+			.empty {
+				color: var(--fg2);
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<strong>walkthru</strong>
+			<nav>
+				<a aria-current="page" href="/">Films</a>
+				<a href="/look">Look</a>
+			</nav>
+		</header>
+		<main>
+			<div class="top">
+				<h1>Films</h1>
+				<div class="seg" role="group" aria-label="Quality">
+					<button id="draft" type="button">Draft</button>
+					<button id="final" type="button">Final</button>
+				</div>
+				<button class="primary" id="all" type="button">Update all</button>
+			</div>
+			<div id="films"><p class="empty">Reading the films</p></div>
+		</main>
+		<div class="output" id="output" hidden></div>
+		<script type="module">
+			const $ = (id) => document.getElementById(id);
+			let state = null;
+			let final = false;
+			const open = new Set();
+
+			const esc = (s) =>
+				String(s).replace(
+					/[&<>"]/g,
+					(c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+				);
+			const job = () => state?.job;
+			const busy = () => Boolean(job()?.running);
+			const busyHere = (story, lang) =>
+				busy() && job().story === story && job().lang === lang;
+
+			async function load() {
+				state = await (await fetch(`/api/state?final=${final ? 1 : 0}`)).json();
+				render();
+			}
+
+			async function run(body) {
+				const r = await fetch("/api/run", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({ ...body, final }),
+				});
+				if (!r.ok) state.job = { error: await r.text() };
+				await load();
+			}
+
+			function lineOf(story, row) {
+				const j = job();
+				if (busyHere(story, row.lang))
+					return `<span class="line busy">${esc(j.last || "Starting")}</span>`;
+				if (
+					j &&
+					!j.running &&
+					j.error &&
+					j.story === story &&
+					j.lang === row.lang
+				)
+					return `<span class="line"><span class="err">Stopped: ${esc(j.error)}</span></span>`;
+				return `<span class="line${row.upToDate ? " done" : ""}">${esc(row.line)}</span>`;
+			}
+
+			function render() {
+				$("draft").setAttribute("aria-pressed", String(!final));
+				$("final").setAttribute("aria-pressed", String(final));
+				const stories = state.stories;
+				$("all").disabled =
+					busy() || stories.every((s) => s.langs.every((l) => l.upToDate));
+				if (!stories.length) {
+					$("films").innerHTML =
+						`<p class="empty">No stories in walkthru.config.ts yet.</p>`;
+					return;
+				}
+				$("films").innerHTML = stories
+					.map(
+						(story) => `
+					<section class="story">
+						<h2>${esc(story.title)}<span>${esc(story.slug)}</span></h2>
+						<div class="rows">
+							${story.langs
+								.map((row) => {
+									const key = `${story.slug}/${row.lang}`;
+									const scenes = open.has(key)
+										? `<div class="scenes">${row.scenes
+												.map(
+													(sc) => `
+												<div class="scene">
+													<span>${esc(sc.id)}</span>
+													<span class="state ${sc.state}">${{ filmed: "Filmed", changed: "Changed", new: "New" }[sc.state]}</span>
+													<button class="quiet" type="button" data-film="${esc(story.slug)}|${row.lang}|${esc(sc.id)}"${busy() ? " disabled" : ""}>Film again</button>
+												</div>`,
+												)
+												.join("")}</div>`
+										: "";
+									return `
+									<div class="row">
+										<span class="lang">${esc(row.lang)}</span>
+										${lineOf(story.slug, row)}
+										<span class="acts">
+											<button class="quiet" type="button" data-scenes="${esc(key)}" aria-expanded="${open.has(key)}">${open.has(key) ? "Hide scenes" : "Scenes"}</button>
+											<button class="secondary" type="button" data-make="${esc(story.slug)}|${row.lang}" ${busy() || row.upToDate ? "disabled" : ""}>Update</button>
+										</span>
+									</div>${scenes}`;
+								})
+								.join("")}
+						</div>
+					</section>`,
+					)
+					.join("");
+				const out = $("output");
+				const lines = job()?.lines ?? [];
+				out.hidden = !lines.length;
+				if (lines.length) {
+					const atEnd =
+						out.scrollTop + out.clientHeight >= out.scrollHeight - 4;
+					out.textContent = lines.join("\n");
+					if (atEnd) out.scrollTop = out.scrollHeight;
+				}
+			}
+
+			document.addEventListener("click", (event) => {
+				const b = event.target.closest("button");
+				if (!b || b.disabled) return;
+				if (b.id === "draft" || b.id === "final") {
+					final = b.id === "final";
+					load();
+				} else if (b.id === "all") run({ action: "make-all" });
+				else if (b.dataset.scenes) {
+					open.has(b.dataset.scenes)
+						? open.delete(b.dataset.scenes)
+						: open.add(b.dataset.scenes);
+					render();
+				} else if (b.dataset.make) {
+					const [story, lang] = b.dataset.make.split("|");
+					run({ action: "make", story, lang });
+				} else if (b.dataset.film) {
+					const [story, lang, scene] = b.dataset.film.split("|");
+					run({ action: "record", story, lang, from: scene, to: scene });
+				}
+			});
+
+			await load();
+			setInterval(() => busy() && load(), 1000);
+		</script>
+	</body>
+</html>

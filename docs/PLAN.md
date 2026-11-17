@@ -124,9 +124,14 @@ A local app (`walkthru studio`), designed under the product-ui rules (13px base 
    recorder (lengths within 0.1 s); boutique-month's 16 scenes run, and its Sunday was
    filmed alone in 90 s with the scenes before it replayed. Rugero's real adapter
    comes with step 6.
-3. **The command line and the store**, local first: `init`, `make`, `record`, `draw`,
-   `studio`, `publish`, `doctor`.
-4. **The Studio.**
+3. **The command line**: `plan`, `make`, `record`, `draw`, `studio`, `doctor`. Done:
+   a scene's script fingerprint (not its captions) decides what is filmed again, from
+   the first changed scene on (`--only` for just the changed); the parts decide what
+   is drawn; a busy machine is refused (`--anyway`). Not yet: `init`, `publish`.
+4. **The Studio**. Done: the films page (each story and language with its plan line,
+   Update, its scenes with Film again; Draft or Final; one job at a time, the row's
+   text says what is happening) and the look page (the look lab, its paths from the
+   config).
 5. **Drawing on build machines.**
 6. **Rugero consumes it:** `apps/video`'s guide becomes a config and its scripts.
 7. **Make the repo public** after a check that nothing private is in it (no Rugero

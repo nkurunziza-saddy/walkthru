@@ -13,7 +13,23 @@ into a tool of its own. **Status: early.** The parts that know no app are here a
 tested: the timeline, the planner that keeps drawn parts, the sound, and the film's
 drawing (it draws Rugero's films pixel for pixel, given Rugero's brand as data), and
 the recorder, for topics and for stories told in scenes (an app is plugged in through a
-`Host`). The command line and the Studio come next. See [docs/PLAN.md](docs/PLAN.md).
+`Host`), the command line and the Studio.
+
+## Use
+
+An app has a `walkthru.config.ts` (its host, brand, look, stories and languages). From
+that folder:
+
+```sh
+walkthru plan boutique-month --lang rw    # what is out of date, and about how long
+walkthru make boutique-month --lang rw    # film what changed, draw what changed, lay the sound
+walkthru studio                           # the same, on a page, and the look
+walkthru doctor                           # what this machine has and lacks
+```
+
+A scene is filmed again when its script changes (its steps' code, its moment, who is in
+it), not when its caption does: a caption is drawn. A film is drawn in parts and only
+the parts a change touches are drawn again. See [docs/PLAN.md](docs/PLAN.md).
 
 ## Working on it
 
@@ -38,6 +54,9 @@ npx tsc --noEmit  # types
 | `src/record/types.ts` | scripts (topics, stories, steps) and the `Host` an app provides |
 | `src/record/run.ts` | records one topic: steps, the real mouse, frames, times of taps and keys |
 | `src/record/story.ts` | records a story scene by scene, or from one scene on |
+| `src/make/` | the plan (what is stale, how long), drawing a film in parts, its sound |
+| `src/cli.ts` | the command line |
+| `src/studio/` | the Studio: the films page and the look page |
 
 ## Why it is quick to change
 
