@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
  * final, the sound laid under. Drawing is the heavy part: it is CPU-bound, about 8
  * frames a second for a final and 11 for a draft on a 12-thread machine.
  */
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, renameSync } from "node:fs";
 import path from "node:path";
 import type { Config } from "../config.ts";
 import { storyInput, type Shape } from "../film/input.ts";
@@ -146,15 +146,18 @@ export async function drawFilm(options: {
 	const films = path.join(config.host.out, final ? "films" : "drafts");
 	mkdirSync(films, { recursive: true });
 	const output = path.join(films, `${film.replace(/-draft$/, "")}.mp4`);
+	// Made beside it and moved in when whole: a stopped run never leaves half a film where a good one was.
+	const making = `${output}.making.mp4`;
 	if (final) {
 		const frames = filmPresses(input.scenes, FPS);
 		const seconds = (list: number[]) => list.map((f) => f / FPS);
 		mixSound({
 			picture: joined,
-			output,
+			output: making,
 			presses: { clicks: seconds(frames.clicks), keys: seconds(frames.keys) },
 			piano: true,
 		});
-	} else copyFileSync(joined, output);
+	} else copyFileSync(joined, making);
+	renameSync(making, output);
 	return { output, drawn: missing.length, kept: plan.length - missing.length };
 }
