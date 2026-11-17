@@ -4,5 +4,16 @@
 	"private": true,
 	"description": "Walkthrough films of an app, made by scripting the real app.",
 	"license": "MIT",
-	"type": "module"
+	"type": "module",
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "24.19.0",
+		"typescript": "7.0.2",
+		"vite-plus": "1.1.0"
+	},
+	"engines": {
+		"node": ">=22.18"
+	}
 }

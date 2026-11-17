@@ -9,8 +9,27 @@ each language, a cursor, the day, and sound. A film is only as true as the app:
 when a screen changes, the script fails until it is fixed.
 
 It started inside [Rugero](https://rugero.app) as its guide films and is being made
-into a tool of its own. **Status: planning.** Nothing here runs yet; see
-[docs/PLAN.md](docs/PLAN.md) for the design and the order of work.
+into a tool of its own. **Status: early.** The parts that know no app are here and
+tested (the timeline, the planner that keeps drawn parts, the sound); the recorder,
+the film's drawing and the command line come next. See [docs/PLAN.md](docs/PLAN.md).
+
+## Working on it
+
+Node 22.18 or later, Python 3 with numpy (`pip install -r sound/requirements.txt`),
+and [Vite+](https://viteplus.dev):
+
+```sh
+vp install
+vp check          # format, lint
+vp test           # the tests
+npx tsc --noEmit  # types
+```
+
+| Where | What |
+| --- | --- |
+| `src/timeline.ts` | a film's timeline: where each part starts, where each press falls |
+| `src/plan.ts` | the film cut into parts, each kept under a fingerprint |
+| `sound/` | the piano and the hand (clicks, keys), made in code |
 
 ## Why it is quick to change
 

@@ -108,8 +108,11 @@ A local app (`walkthru studio`), designed under the product-ui rules (13px base 
 
 ## Order of work
 
-0. **Scaffold** (this): licence, readme, this plan.
-1. **Extract the parts that know no app**: the planner and fingerprints, the timeline,
+0. **Scaffold**: licence, readme, this plan. Done.
+1. **Extract the parts that know no app**. Done: the timeline (`src/timeline.ts`), the
+   planner and fingerprints (`src/plan.ts`) and the sound (`sound/`, identical to
+   Rugero's to the sample), with tests and CI. Still to move: the compose layer and
+   its text effects. Was: the planner and fingerprints, the timeline,
    the presses, the sound, the compose layer and text effects, with tests (the
    planner's seam check, the timeline against the film's length).
 2. **The adapter and the recorder.** Rugero's adapter written in Rugero.
