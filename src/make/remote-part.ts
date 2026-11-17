@@ -7,6 +7,7 @@
  *   node src/make/remote-part.ts <job folder> <chunk id>…
  */
 import { mkdirSync, readFileSync } from "node:fs";
+import { cpus } from "node:os";
 import path from "node:path";
 import { drawParts } from "./parts.ts";
 import type { Job } from "./remote.ts";
@@ -27,7 +28,16 @@ await drawParts({
 	input: job.input,
 	total: job.total,
 	parts: chunks.map((c) => ({ id: c.id, from: c.from, to: c.to, key: "" })),
-	settings: job.settings,
+	// How many tabs and threads draw changes how fast, never what is drawn: a machine uses
+	// what it has. The fingerprints keep the planned settings, so the parts still match.
+	settings: {
+		...job.settings,
+		concurrency: Math.min(Number(job.settings.concurrency ?? 1), cpus().length),
+		offthreadVideoThreads: Math.min(
+			Number(job.settings.offthreadVideoThreads ?? 2),
+			cpus().length,
+		),
+	},
 	fileOf: (part) => path.join(out, `${part.id}.mp4`),
 	onPart: (part, s) => console.log(`drew ${part.id} (${s} s)`),
 });
