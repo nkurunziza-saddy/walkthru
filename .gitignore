@@ -1,0 +1,5 @@
+node_modules/
+out/
+.walkthru/
+*.log
+.DS_Store
