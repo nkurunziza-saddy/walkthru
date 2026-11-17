@@ -16,7 +16,7 @@
  */
 import { spawnSync } from "node:child_process";
 import { statfsSync } from "node:fs";
-import { cpus, freemem, loadavg } from "node:os";
+import { cpus, freemem } from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { loadConfig, type Config } from "./config.ts";
@@ -52,14 +52,33 @@ function storyOf(config: Config, slug: string | undefined): Story {
 const langsOf = (config: Config) =>
 	flag("lang")?.split(",") ?? config.languages;
 
+/** How busy the CPU is now, from 0 to 1: its time spent working over one second. */
+async function busyNow() {
+	const sample = () =>
+		cpus().reduce(
+			(sum, cpu) => {
+				const t = cpu.times;
+				sum.idle += t.idle;
+				sum.all += t.user + t.nice + t.sys + t.irq + t.idle;
+				return sum;
+			},
+			{ idle: 0, all: 0 },
+		);
+	const a = sample();
+	await new Promise((resolve) => setTimeout(resolve, 1000));
+	const b = sample();
+	const all = b.all - a.all;
+	return all > 0 ? 1 - (b.idle - a.idle) / all : 0;
+}
+
 /** A heavy job waits for a quiet machine: a busy one draws slower and may run short of memory. */
-function quietEnough() {
-	const busy = loadavg()[0]! / cpus().length;
-	const freeGb = freemem() / 1024 ** 3;
+async function quietEnough() {
 	if (has("anyway")) return true;
+	const busy = await busyNow();
+	const freeGb = freemem() / 1024 ** 3;
 	if (busy > 0.35 || freeGb < 4) {
 		say(
-			`The machine is busy (load ${Math.round(busy * 100)}% of ${cpus().length} threads, ${freeGb.toFixed(1)} GB free). Close what else runs and try again, or add --anyway.`,
+			`The machine is busy (${Math.round(busy * 100)}% of ${cpus().length} threads at work, ${freeGb.toFixed(1)} GB free). Close what else runs and try again, or add --anyway.`,
 		);
 		return false;
 	}
@@ -151,7 +170,7 @@ async function draw(config: Config, story: Story, lang: string) {
 	);
 }
 
-function doctor() {
+async function doctor() {
 	const check = (name: string, ok: boolean, detail: string) =>
 		say(`${ok ? "ok  " : "MISS"}  ${name.padEnd(12)} ${detail}`);
 	const runs = (cmd: string, a: string[]) =>
@@ -175,7 +194,7 @@ function doctor() {
 		freeDisk > 10,
 		`${freeDisk.toFixed(0)} GB free (a film's parts and bundle need several)`,
 	);
-	const busy = loadavg()[0]! / cpus().length;
+	const busy = await busyNow();
 	check(
 		"cpu",
 		busy < 0.35,
@@ -204,7 +223,7 @@ async function main() {
 		);
 		return;
 	}
-	if (command === "doctor") return doctor();
+	if (command === "doctor") return await doctor();
 	const config = await loadConfig();
 	if (command === "studio") {
 		const { studio } = await import("./studio/server.ts");
@@ -220,13 +239,13 @@ async function main() {
 		return;
 	}
 	if (command === "record") {
-		if (!has("dry") && !quietEnough()) process.exit(1);
+		if (!has("dry") && !(await quietEnough())) process.exit(1);
 		for (const lang of langs)
 			await record(config, story, lang, flag("from"), flag("to"));
 		return;
 	}
 	if (command === "draw") {
-		if (!quietEnough()) process.exit(1);
+		if (!(await quietEnough())) process.exit(1);
 		if (has("redo")) {
 			const { rmSync } = await import("node:fs");
 			for (const lang of langs)
@@ -248,7 +267,7 @@ async function main() {
 	if (command === "make") {
 		const total = printPlan(config, story, langs);
 		if (total < 1) return;
-		if (!quietEnough()) process.exit(1);
+		if (!(await quietEnough())) process.exit(1);
 		if (total > 300 && !(await confirm("Go on?"))) return;
 		for (const lang of langs) {
 			const p = planOne(config, story, lang);
