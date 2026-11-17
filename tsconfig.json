@@ -10,7 +10,9 @@
 		"strict": true,
 		"noUncheckedIndexedAccess": true,
 		"skipLibCheck": true,
-		"types": ["node"]
+		"types": ["node"],
+		"jsx": "react-jsx",
+		"lib": ["es2024", "dom"]
 	},
 	"include": ["src", "test"]
 }

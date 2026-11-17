@@ -111,8 +111,11 @@ A local app (`walkthru studio`), designed under the product-ui rules (13px base 
 0. **Scaffold**: licence, readme, this plan. Done.
 1. **Extract the parts that know no app**. Done: the timeline (`src/timeline.ts`), the
    planner and fingerprints (`src/plan.ts`) and the sound (`sound/`, identical to
-   Rugero's to the sample), with tests and CI. Still to move: the compose layer and
-   its text effects. Was: the planner and fingerprints, the timeline,
+   Rugero's to the sample), with tests and CI. The film's drawing too
+   (`src/film`): Rugero's colours, mark, words and grounds are a `brand` and file
+   names the host gives, and given Rugero's brand it draws Rugero's frames pixel for
+   pixel (the only differences are the mark's edge smoothing, which differs between
+   two renders of Rugero itself). Was: the planner and fingerprints, the timeline,
    the presses, the sound, the compose layer and text effects, with tests (the
    planner's seam check, the timeline against the film's length).
 2. **The adapter and the recorder.** Rugero's adapter written in Rugero.

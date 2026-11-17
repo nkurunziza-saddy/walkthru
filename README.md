@@ -10,8 +10,9 @@ when a screen changes, the script fails until it is fixed.
 
 It started inside [Rugero](https://rugero.app) as its guide films and is being made
 into a tool of its own. **Status: early.** The parts that know no app are here and
-tested (the timeline, the planner that keeps drawn parts, the sound); the recorder,
-the film's drawing and the command line come next. See [docs/PLAN.md](docs/PLAN.md).
+tested: the timeline, the planner that keeps drawn parts, the sound, and the film's
+drawing (it draws Rugero's films pixel for pixel, given Rugero's brand as data). The
+recorder and the command line come next. See [docs/PLAN.md](docs/PLAN.md).
 
 ## Working on it
 
@@ -30,6 +31,9 @@ npx tsc --noEmit  # types
 | `src/timeline.ts` | a film's timeline: where each part starts, where each press falls |
 | `src/plan.ts` | the film cut into parts, each kept under a fingerprint |
 | `sound/` | the piano and the hand (clicks, keys), made in code |
+| `src/film/` | the films' drawing (Remotion): the window, captions, cursor, cards, text effects |
+| `src/film/brand.tsx` | whose film it is: name, mark, colours, the film's own words |
+| `src/render/bundle.ts` | the films bundled for drawing |
 
 ## Why it is quick to change
 
