@@ -1,0 +1,3 @@
+# esbuild bundles the films (through Remotion): its install fetches its own binary.
+allowBuilds:
+  esbuild: true
